@@ -10,7 +10,13 @@ It will eventually integrated into Nix repo itself and PR'd.
 
 ````
 git submodule update --init
+
+# Then pick one:
 nix-build -A deb
+nix-build -A rpm
+
+# Or build all at once:
+nix-build -A all
 ````
 
 ## To use

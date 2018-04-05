@@ -3,7 +3,6 @@ let
   nix = (import ./nix/release.nix {}).build.x86_64-linux;
   tarball = (import ./nix/release.nix {}).binaryTarball.x86_64-linux;
   closureInfo = pkgs.closureInfo { rootPaths = [ nix ]; };
-in rec {
 
   # Profile script installed to /etc/profile.d
   profileScript = pkgs.writeText "nix.sh" ''
@@ -20,7 +19,7 @@ in rec {
     fi
   '';
 
-  deb = pkgs.stdenv.mkDerivation {
+  buildFor = types: pkgs.stdenv.mkDerivation {
     name = "nix-fpm-multiuser";
 
     nativeBuildInputs = with pkgs; [ fpm rpm tree ];
@@ -34,6 +33,8 @@ in rec {
       other features. It is the basis of the NixOS Linux distribution, but
       it can be used equally well under other Unix systems.
     '';
+
+    inherit types;
 
     buildCommand = ''
       pathsToCopy=""
@@ -64,22 +65,24 @@ in rec {
       # --directories /nix - rpm backend doesn't like if the directory doesn't exist
       # Vcs-Browser:, Vcs-Git:
 
-      fpm \
-        --input-type dir \
-        --output-type rpm \
-        --name nix \
-        --version 42-FIXME \
-        --maintainer "Eelco Dolstra <eelco.dolstra@logicblox.com>" \
-        --vendor NixOS \
-        --url https://nixos.org/nix/ \
-        --description "$packageDescription" \
-        --license 'LGPLv2+' \
-        --deb-no-default-config-files \
-        --rpm-rpmbuild-define '_build_id_links none' \
-        --after-install ${./after-install-linux.sh} \
-        --before-remove ${./before-remove-linux.sh} \
-        --after-remove ${./after-remove-linux.sh} \
-        $pathsToCopy
+      for type in $types; do
+        fpm \
+          --input-type dir \
+          --output-type $type \
+          --name nix \
+          --version 42-FIXME \
+          --maintainer "Eelco Dolstra <eelco.dolstra@logicblox.com>" \
+          --vendor NixOS \
+          --url https://nixos.org/nix/ \
+          --description "$packageDescription" \
+          --license 'LGPLv2+' \
+          --deb-no-default-config-files \
+          --rpm-rpmbuild-define '_build_id_links none' \
+          --after-install ${./after-install-linux.sh} \
+          --before-remove ${./before-remove-linux.sh} \
+          --after-remove ${./after-remove-linux.sh} \
+          $pathsToCopy
+      done
 
       #ar x *.deb
       #mkdir -p unpack
@@ -93,4 +96,10 @@ in rec {
       cp *.deb *.rpm $out/
     '';
   };
+
+in rec {
+  all = buildFor ["deb" "rpm"];
+
+  deb = buildFor ["deb"];
+  rpm = buildFor ["rpm"];
 }
