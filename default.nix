@@ -22,7 +22,7 @@ let
   buildFor = types: pkgs.stdenv.mkDerivation {
     name = "nix-fpm-multiuser";
 
-    nativeBuildInputs = with pkgs; [ fpm rpm tree ];
+    nativeBuildInputs = with pkgs; [ dpkg fpm rpm tree ];
 
     packageDescription = ''
       The Nix software deployment system
@@ -90,6 +90,13 @@ let
             echo
             echo "Package metadata:"
             rpm -qip *.rpm
+            ;;
+          deb)
+            echo "File list:"
+            dpkg -c *.deb
+            echo
+            echo "Package metadata:"
+            dpkg -I *.deb
             ;;
           *)
             echo "wtf: $type"
