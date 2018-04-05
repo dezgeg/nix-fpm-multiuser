@@ -23,7 +23,7 @@ in rec {
   deb = pkgs.stdenv.mkDerivation {
     name = "nix-fpm-multiuser";
 
-    nativeBuildInputs = with pkgs; [ fpm tree ];
+    nativeBuildInputs = with pkgs; [ fpm rpm tree ];
 
     packageDescription = ''
       The Nix software deployment system
@@ -59,12 +59,14 @@ in rec {
       # --debug-workspace
 
       # TODO:
-      # --config-files /etc/nix
+      # Make description + summary look sane in both RPM and Deb
+      # --config-files /etc/nix - deb backend doesn't like if the directory doesn't exist
+      # --directories /nix - rpm backend doesn't like if the directory doesn't exist
       # Vcs-Browser:, Vcs-Git:
 
       fpm \
         --input-type dir \
-        --output-type deb \
+        --output-type rpm \
         --name nix \
         --version 42-FIXME \
         --maintainer "Eelco Dolstra <eelco.dolstra@logicblox.com>" \
@@ -72,23 +74,23 @@ in rec {
         --url https://nixos.org/nix/ \
         --description "$packageDescription" \
         --license 'LGPLv2+' \
-        --directories /nix \
         --deb-no-default-config-files \
+        --rpm-rpmbuild-define '_build_id_links none' \
         --after-install ${./after-install-linux.sh} \
         --before-remove ${./before-remove-linux.sh} \
         --after-remove ${./after-remove-linux.sh} \
         $pathsToCopy
 
-      ar x *.deb
-      mkdir -p unpack
-      (cd unpack && tar xf ../data.tar.gz)
-      (cd unpack && tree)
+      #ar x *.deb
+      #mkdir -p unpack
+      #(cd unpack && tar xf ../data.tar.gz)
+      #(cd unpack && tree)
 
       echo
       ls -lah
 
       mkdir -p $out
-      cp *.deb $out/
+      cp *.deb *.rpm $out/
     '';
   };
 }
