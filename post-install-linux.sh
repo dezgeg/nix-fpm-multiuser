@@ -39,3 +39,6 @@ mkdir -p "$localstatedir/channel-cache"
 # Initialize the store.
 $nix/bin/nix-store --init
 $nix/bin/nix-store --load-db < /opt/nix-multiuser/reginfo
+
+# Make the Debian/RPM-installed Nix a gcroot.
+ln -sfn /opt/nix-multiuser/nix "$localstatedir/gcroots/nix-multiuser"

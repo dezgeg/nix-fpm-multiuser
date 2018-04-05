@@ -31,6 +31,8 @@ in rec {
       ln -s ${nix} nix
       pathsToCopy+=" nix=/opt/nix-multiuser/nix"
       pathsToCopy+=" ${profileScript}=/etc/profile.d/nix.sh"
+      pathsToCopy+=" ${nix}/lib/systemd/system/nix-daemon.socket=/lib/systemd/system/nix-daemon.socket"
+      pathsToCopy+=" ${nix}/lib/systemd/system/nix-daemon.service=/lib/systemd/system/nix-daemon.service"
       pathsToCopy+=" ${closureInfo}/registration=/opt/nix-multiuser/reginfo"
 
       for f in $(cat ${closureInfo}/store-paths); do
