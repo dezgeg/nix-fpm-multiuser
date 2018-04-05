@@ -60,6 +60,8 @@ in rec {
         --license 'LGPLv2+' \
         --directories /nix \
         --deb-no-default-config-files \
+        --before-remove ${./before-remove-linux.sh} \
+        --after-remove ${./after-remove-linux.sh} \
         $pathsToCopy
 
       ar x *.deb
