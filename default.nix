@@ -82,15 +82,29 @@ let
           --before-remove ${./before-remove-linux.sh} \
           --after-remove ${./after-remove-linux.sh} \
           $pathsToCopy
+
+        case "$type" in
+          rpm)
+            echo "File list:"
+            rpm -qlp *.rpm
+            echo
+            echo "Package metadata:"
+            rpm -qip *.rpm
+            ;;
+          *)
+            echo "wtf: $type"
+            ;;
+        esac
       done
+
 
       #ar x *.deb
       #mkdir -p unpack
       #(cd unpack && tar xf ../data.tar.gz)
       #(cd unpack && tree)
 
-      echo
-      ls -lah
+      #echo
+      #ls -lah
 
       mkdir -p $out
       cp *.deb *.rpm $out/
