@@ -25,6 +25,16 @@ in rec {
 
     nativeBuildInputs = with pkgs; [ fpm tree ];
 
+    packageDescription = ''
+      The Nix software deployment system
+      Nix is a purely functional package manager. It allows multiple
+      versions of a package to be installed side-by-side, ensures that
+      dependency specifications are complete, supports atomic upgrades and
+      rollbacks, allows non-root users to install software, and has many
+      other features. It is the basis of the NixOS Linux distribution, but
+      it can be used equally well under other Unix systems.
+    '';
+
     buildCommand = ''
       pathsToCopy=""
 
@@ -47,7 +57,10 @@ in rec {
       # --verbose 
       # --debug 
       # --debug-workspace
+
+      # TODO:
       # --config-files /etc/nix
+      # Vcs-Browser:, Vcs-Git:
 
       fpm \
         --input-type dir \
@@ -55,8 +68,9 @@ in rec {
         --name nix \
         --version 42-FIXME \
         --maintainer "Eelco Dolstra <eelco.dolstra@logicblox.com>" \
+        --vendor NixOS \
         --url https://nixos.org/nix/ \
-        --description 'The Nix software deployment system' \
+        --description "$packageDescription" \
         --license 'LGPLv2+' \
         --directories /nix \
         --deb-no-default-config-files \
