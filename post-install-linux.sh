@@ -3,7 +3,7 @@ set -e
 
 storedir=/nix/store
 localstatedir=/nix/var/nix
-nix=/nix/store/xwyz07gs1s7k6bfmxxqq83zbi070h91a-nix-2.0pre6107_3fbaa23
+nix=/opt/nix-multiuser/nix
 
 # Setup build users
 if ! getent group "nixbld" >/dev/null; then

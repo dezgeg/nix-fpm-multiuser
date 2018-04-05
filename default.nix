@@ -10,14 +10,19 @@ in rec {
     nativeBuildInputs = with pkgs; [ fpm tree ];
 
     buildCommand = ''
-      storePaths=""
+      pathsToCopy=""
 
-      for f in $(cat ${closureInfo}/store-paths     | head -n9999       ); do
-        # Argh, fpm can't recreate a directory hierarchy if the directories lack write permission
+      ln -s ${nix} nix
+      pathsToCopy+=" nix=/opt/nix-multiuser/nix"
+
+      pathsToCopy+=" ${closureInfo}/registration=/opt/nix-multiuser/reginfo"
+      for f in $(cat ${closureInfo}/store-paths); do
+        # XXX: fpm can't recreate a directory hierarchy if the directories lack write permission.
+        # So make a local copy with +w added to directories, include that, and fixup in post-install script.
         cp -r $f .
         find $(basename $f) -type d -exec chmod +w {} \;
 
-        storePaths+=" $(basename $f)=/opt/nix-multiuser/bootstrap-store"
+        pathsToCopy+=" $(basename $f)=/opt/nix-multiuser/bootstrap-store"
       done
 
       # --verbose 
@@ -35,8 +40,7 @@ in rec {
         --description 'The Nix software deployment system' \
         --license 'LGPLv2+' \
         --directories /nix \
-        ${closureInfo}/registration=/opt/nix-multiuser/reginfo \
-        $storePaths
+        $pathsToCopy
 
       ar x *.deb
       mkdir -p unpack
