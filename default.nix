@@ -20,7 +20,7 @@ in rec {
     fi
   '';
 
-  foo = pkgs.stdenv.mkDerivation {
+  deb = pkgs.stdenv.mkDerivation {
     name = "nix-fpm-multiuser";
 
     nativeBuildInputs = with pkgs; [ fpm tree ];
