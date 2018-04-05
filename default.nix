@@ -1,7 +1,7 @@
 let
   pkgs = import <nixpkgs> {};
-  nix = (import ../nix/release.nix {}).build.x86_64-linux;
-  tarball = (import ../nix/release.nix {}).binaryTarball.x86_64-linux;
+  nix = (import ./nix/release.nix {}).build.x86_64-linux;
+  tarball = (import ./nix/release.nix {}).binaryTarball.x86_64-linux;
   closureInfo = pkgs.closureInfo { rootPaths = [ nix ]; };
 in rec {
 
