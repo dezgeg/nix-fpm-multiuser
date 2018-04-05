@@ -4,6 +4,22 @@ let
   tarball = (import ../nix/release.nix {}).binaryTarball.x86_64-linux;
   closureInfo = pkgs.closureInfo { rootPaths = [ nix ]; };
 in rec {
+
+  # Profile script installed to /etc/profile.d
+  profileScript = pkgs.writeText "nix.sh" ''
+    if [ -e $HOME/.nix-profile/etc/profile.d/nix.sh ]; then
+      source $HOME/.nix-profile/etc/profile.d/nix.sh
+      export PATH="$PATH:/opt/nix-multiuser/nix/bin"
+    elif [ -e /opt/nix-multiuser/nix/etc/profile.d/nix.sh ]; then
+      source /opt/nix-multiuser/nix/etc/profile.d/nix.sh
+      export PATH="$PATH:/opt/nix-multiuser/nix/bin"
+    else
+      # Generally, this should never happen, but be defensive just in case we somehow
+      # end up with the package installed without running the post-install script.
+      echo "nix-multiuser: warning: couldn't locate a Nix profile script to source." >&2
+    fi
+  '';
+
   foo = pkgs.stdenv.mkDerivation {
     name = "nix-fpm-multiuser";
 
@@ -14,8 +30,9 @@ in rec {
 
       ln -s ${nix} nix
       pathsToCopy+=" nix=/opt/nix-multiuser/nix"
-
+      pathsToCopy+=" ${profileScript}=/etc/profile.d/nix.sh"
       pathsToCopy+=" ${closureInfo}/registration=/opt/nix-multiuser/reginfo"
+
       for f in $(cat ${closureInfo}/store-paths); do
         # XXX: fpm can't recreate a directory hierarchy if the directories lack write permission.
         # So make a local copy with +w added to directories, include that, and fixup in post-install script.
@@ -40,6 +57,7 @@ in rec {
         --description 'The Nix software deployment system' \
         --license 'LGPLv2+' \
         --directories /nix \
+        --deb-no-default-config-files \
         $pathsToCopy
 
       ar x *.deb
