@@ -13,6 +13,7 @@ git submodule update --init
 
 # Then pick one:
 nix-build -A deb
+nix-build -A pacman
 nix-build -A rpm
 
 # Or build all at once:

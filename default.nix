@@ -22,7 +22,7 @@ let
   buildFor = types: pkgs.stdenv.mkDerivation {
     name = "nix-fpm-multiuser";
 
-    nativeBuildInputs = with pkgs; [ dpkg fpm rpm tree ];
+    nativeBuildInputs = with pkgs; [ dpkg fpm rpm ];
 
     packageDescription = ''
       The Nix software deployment system
@@ -98,29 +98,30 @@ let
             echo "Package metadata:"
             dpkg -I *.deb
             ;;
+          pacman)
+            # pacman does provide some commands to list metadata, but they don't work without a pacman database set up :(
+            echo "File list:"
+            tar tvf *.pkg.tar.*
+            echo
+            echo "Package metadata:"
+            tar xf *.pkg.tar.* .PKGINFO
+            cat .PKGINFO
+            ;;
           *)
             echo "wtf: $type"
             ;;
         esac
       done
 
-
-      #ar x *.deb
-      #mkdir -p unpack
-      #(cd unpack && tar xf ../data.tar.gz)
-      #(cd unpack && tree)
-
-      #echo
-      #ls -lah
-
       mkdir -p $out
-      cp *.deb *.rpm $out/
+      cp *.deb *.rpm *.pkg.tar.* $out/
     '';
   };
 
 in rec {
-  all = buildFor ["deb" "rpm"];
+  all = buildFor ["deb" "pacman" "rpm"];
 
   deb = buildFor ["deb"];
+  pacman = buildFor ["pacman"];
   rpm = buildFor ["rpm"];
 }
