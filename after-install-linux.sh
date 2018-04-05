@@ -45,5 +45,6 @@ ln -sfn /opt/nix-multiuser/nix "$localstatedir/gcroots/nix-multiuser"
 
 # Finally, start nix-daemon.
 if command -v systemctl >/dev/null 2>&1; then
+  systemctl enable nix-daemon.socket || true
   systemctl start nix-daemon.socket || true
 fi

@@ -60,6 +60,7 @@ in rec {
         --license 'LGPLv2+' \
         --directories /nix \
         --deb-no-default-config-files \
+        --after-install ${./after-install-linux.sh} \
         --before-remove ${./before-remove-linux.sh} \
         --after-remove ${./after-remove-linux.sh} \
         $pathsToCopy
