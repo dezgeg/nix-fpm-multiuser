@@ -40,11 +40,11 @@ mkdir -p "$localstatedir/channel-cache"
 $nix/bin/nix-store --init
 $nix/bin/nix-store --load-db < /opt/nix-multiuser/reginfo
 
-# Make the Debian/RPM-installed Nix a gcroot.
+# Make the Nix package used by the daemon a gcroot.
 ln -sfn /opt/nix-multiuser/nix "$localstatedir/gcroots/nix-multiuser"
 
 # Finally, start nix-daemon.
 if command -v systemctl >/dev/null 2>&1; then
-  systemctl enable nix-daemon.socket || true
+  systemctl enable nix-daemon.socket nix-daemon.service || true
   systemctl start nix-daemon.socket || true
 fi
