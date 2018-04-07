@@ -19,6 +19,21 @@ let
     fi
   '';
 
+  daemonStartupScript = pkgs.writeScript "start-daemon.sh" ''
+    #!/bin/sh
+    if [ -e /etc/ssl/certs/ca-certificates.crt ]; then # NixOS, Ubuntu, Debian, Gentoo, Arch
+      export NIX_SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
+    elif [ -e /etc/ssl/ca-bundle.pem ]; then # openSUSE Tumbleweed
+      export NIX_SSL_CERT_FILE=/etc/ssl/ca-bundle.pem
+    elif [ -e /etc/ssl/certs/ca-bundle.crt ]; then # Old NixOS
+      export NIX_SSL_CERT_FILE=/etc/ssl/certs/ca-bundle.crt
+    elif [ -e /etc/pki/tls/certs/ca-bundle.crt ]; then # Fedora, CentOS
+      export NIX_SSL_CERT_FILE=/etc/pki/tls/certs/ca-bundle.crt
+    fi
+
+    exec ${nix}/bin/nix-daemon --daemon
+  '';
+
   buildFor = types: pkgs.stdenv.mkDerivation {
     name = "nix-fpm-multiuser";
 
@@ -40,11 +55,15 @@ let
       pathsToCopy=""
 
       ln -s ${nix} nix
+      cp ${nix}/lib/systemd/system/nix-daemon.* .
+      sed -i nix-daemon.service -e 's|ExecStart=.*|ExecStart=/opt/nix-multiuser/start-daemon.sh|'
+
       pathsToCopy+=" nix=/opt/nix-multiuser/nix"
-      pathsToCopy+=" ${profileScript}=/etc/profile.d/nix.sh"
-      pathsToCopy+=" ${nix}/lib/systemd/system/nix-daemon.socket=/lib/systemd/system/nix-daemon.socket"
-      pathsToCopy+=" ${nix}/lib/systemd/system/nix-daemon.service=/lib/systemd/system/nix-daemon.service"
+      pathsToCopy+=" nix-daemon.service=/lib/systemd/system/nix-daemon.service"
+      pathsToCopy+=" nix-daemon.socket=/lib/systemd/system/nix-daemon.socket"
       pathsToCopy+=" ${closureInfo}/registration=/opt/nix-multiuser/reginfo"
+      pathsToCopy+=" ${daemonStartupScript}=/opt/nix-multiuser/start-daemon.sh"
+      pathsToCopy+=" ${profileScript}=/etc/profile.d/nix.sh"
 
       for f in $(cat ${closureInfo}/store-paths); do
         # XXX: fpm can't recreate a directory hierarchy if the directories lack write permission.
