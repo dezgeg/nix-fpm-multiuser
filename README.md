@@ -35,6 +35,10 @@ The primary reason is to avoid the maintenance overhead of having to update (at 
 A second (and perhaps an even more important reason in the long run) is to avoid having the support costs go up due to these these packages; when bug reports come in there is no need to investigate if the cause is some distro library being subtly incompatible and so on,
 since on every distro and the single-user installer will be running the exact same set of binaries.
 
+So, once distro-specific build scripts are thrown away, we can also throw away distro-specific packaging scripts and use fpm (https://github.com/jordansissel/fpm) instead,
+which is a tool that abstracts the process of creating distro packages from directory trees of build artifacts + pre/post install/remove scripts and metadata.
+So far I've tried the `rpm`, `deb` and `pacman` backends of fpm and the end results look very promising for all of them.
+
 The distro packages do not install files to `/nix` directly though, instead the Nix closure is installed to `/opt/multiuser-nix/bootstrap-store` and a post-install script copies it to `/nix/store`.
 This is so that when the Nix distro package is upgraded, the distro package manager doesn't go deleting stuff from `/nix` and potentially corrupting the store.
 Yes, it wastes some disk space, but hard links could be used (donce a particular fpm bug is fixed) to reduce the actual space waste to under a megabyte.
