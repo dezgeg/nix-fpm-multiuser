@@ -27,14 +27,16 @@ let
 
     # FIXME: this is copy-pasted from nix profile.sh.in
 
-    if [ -e /etc/ssl/certs/ca-certificates.crt ]; then # NixOS, Ubuntu, Debian, Gentoo, Arch
-      export NIX_SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
-    elif [ -e /etc/ssl/ca-bundle.pem ]; then # openSUSE Tumbleweed
-      export NIX_SSL_CERT_FILE=/etc/ssl/ca-bundle.pem
-    elif [ -e /etc/ssl/certs/ca-bundle.crt ]; then # Old NixOS
-      export NIX_SSL_CERT_FILE=/etc/ssl/certs/ca-bundle.crt
-    elif [ -e /etc/pki/tls/certs/ca-bundle.crt ]; then # Fedora, CentOS
-      export NIX_SSL_CERT_FILE=/etc/pki/tls/certs/ca-bundle.crt
+    if [ -z "$NIX_SSL_CERT_FILE" ]; then
+      if [ -e /etc/ssl/certs/ca-certificates.crt ]; then # NixOS, Ubuntu, Debian, Gentoo, Arch
+        export NIX_SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
+      elif [ -e /etc/ssl/ca-bundle.pem ]; then # openSUSE Tumbleweed
+        export NIX_SSL_CERT_FILE=/etc/ssl/ca-bundle.pem
+      elif [ -e /etc/ssl/certs/ca-bundle.crt ]; then # Old NixOS
+        export NIX_SSL_CERT_FILE=/etc/ssl/certs/ca-bundle.crt
+      elif [ -e /etc/pki/tls/certs/ca-bundle.crt ]; then # Fedora, CentOS
+        export NIX_SSL_CERT_FILE=/etc/pki/tls/certs/ca-bundle.crt
+      fi
     fi
 
     exec ${nix}/bin/nix-daemon --daemon
