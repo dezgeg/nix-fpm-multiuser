@@ -7,6 +7,9 @@ let
   # Profile script installed to /etc/profile.d
   profileScript = pkgs.writeText "nix.sh" ''
     if [ -e $HOME/.nix-profile/etc/profile.d/nix.sh ]; then
+      # XXX: is there actually ever a reason to have this case? is the second case enough?
+      # need to check what NixOS does
+
       source $HOME/.nix-profile/etc/profile.d/nix.sh
       export PATH="$PATH:/opt/nix-multiuser/nix/bin"
     elif [ -e /opt/nix-multiuser/nix/etc/profile.d/nix.sh ]; then
@@ -21,6 +24,9 @@ let
 
   daemonStartupScript = pkgs.writeScript "start-daemon.sh" ''
     #!/bin/sh
+
+    # FIXME: this is copy-pasted from nix profile.sh.in
+
     if [ -e /etc/ssl/certs/ca-certificates.crt ]; then # NixOS, Ubuntu, Debian, Gentoo, Arch
       export NIX_SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
     elif [ -e /etc/ssl/ca-bundle.pem ]; then # openSUSE Tumbleweed
