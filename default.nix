@@ -82,7 +82,9 @@ let
       # Make description + summary look sane in both RPM and Deb
       # --config-files /etc/nix - deb backend doesn't like if the directory doesn't exist
       # --directories /nix - rpm backend doesn't like if the directory doesn't exist
-      # Vcs-Browser:, Vcs-Git:
+      # Vcs-Browser:, Vcs-Git: and equivalents for RPM
+      # Make sure that if the distro package is removed no files with nixbld* uids stay in /nix!
+      # Check what 'nix upgrade-nix' does!
 
       for type in $types; do
         fpm \
