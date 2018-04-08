@@ -27,6 +27,21 @@ sudo dpkg -i result/nix_42-FIXME_amd64.deb
 ````
 and after next login Nix should work for both root and regular users.
 
-## Rationale for this particular implementation
+## Rationale & design choices for this particular implementation
 
-TODO: write this
+The most significant difference in this implementation (compared to both the current in-tree RPM+Deb builders and the https://github.com/NixOS/nix/pull/1141 pull request)
+is that instead of compiling Nix against the distro packages with distro build infrastructure (`rpmbuild` / `dpkg-buildpackage`) a Nix-built Nix using nixpkgs is used (and thus is installed to the usual `/nix/store/*-nix/bin/nix` location and not `/usr/bin/nix`).
+The primary reason is to avoid the maintenance overhead of having to update (at least) three different build scripts whenever e.g. a new dependency is added or removed.
+A second (and perhaps an even more important reason in the long run) is to avoid having the support costs go up due to these these packages; when bug reports come in there is no need to investigate if the cause is some distro library being subtly incompatible and so on,
+since on every distro and the single-user installer will be running the exact same set of binaries.
+
+The distro packages do not install files to `/nix` directly though, instead the Nix closure is installed to `/opt/multiuser-nix/bootstrap-store` and a post-install script copies it to `/nix/store`.
+This is so that when the Nix distro package is upgraded, the distro package manager doesn't go deleting stuff from `/nix` and potentially corrupting the store.
+Yes, it wastes some disk space, but hard links could be used (donce a particular fpm bug is fixed) to reduce the actual space waste to under a megabyte.
+
+Uninstalling the distro package doesn't remove `/nix`. But since it will stop & remove the daemon, the build users and the `/etc/profile.d` snippet, effectively Nix and installed packages will stop working.
+Reinstalling the distro package makes things work again just as they were before the uninstallation. I believe this matches what the distros do with mutable data, e.g. uninstalling Postgres doesn't nuke all the databases.
+
+Upgrading the Nix version used by the daemon must be done by upgrading the distro package.
+Installing a new version of Nix to the root's profile doesn't affect the daemon.
+In fact, as on NixOS, both root's and regular users' profiles are empty by default and the default Nix on PATH is the one used for the daemon (`/opt/nix-multiuser/nix/bin`) just on NixOS the default Nix comes from `/run/current-system/sw/bin`.
