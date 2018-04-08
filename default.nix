@@ -42,7 +42,7 @@ let
     exec ${nix}/bin/nix-daemon --daemon
   '';
 
-  buildFor = types: pkgs.stdenv.mkDerivation {
+  buildFor = outputFormat: pkgs.stdenv.mkDerivation {
     name = "nix-fpm-multiuser";
 
     nativeBuildInputs = with pkgs; [ dpkg fpm rpm ];
@@ -57,7 +57,10 @@ let
       it can be used equally well under other Unix systems.
     '';
 
-    inherit types;
+    # Grumble.
+    systemdUnitDir = if outputFormat == "pacman"
+      then "/usr/lib/systemd/system"
+      else "/lib/systemd/system";
 
     buildCommand = ''
       pathsToCopy=""
@@ -67,8 +70,8 @@ let
       sed -i nix-daemon.service -e 's|ExecStart=.*|ExecStart=/opt/nix-multiuser/start-daemon.sh|'
 
       pathsToCopy+=" nix=/opt/nix-multiuser/nix"
-      pathsToCopy+=" nix-daemon.service=/lib/systemd/system/nix-daemon.service"
-      pathsToCopy+=" nix-daemon.socket=/lib/systemd/system/nix-daemon.socket"
+      pathsToCopy+=" nix-daemon.service=$systemdUnitDir/nix-daemon.service"
+      pathsToCopy+=" nix-daemon.socket=$systemdUnitDir/nix-daemon.socket"
       pathsToCopy+=" ${closureInfo}/registration=/opt/nix-multiuser/reginfo"
       pathsToCopy+=" ${daemonStartupScript}=/opt/nix-multiuser/start-daemon.sh"
       pathsToCopy+=" ${profileScript}=/etc/profile.d/nix.sh"
@@ -94,53 +97,51 @@ let
       # Make sure that if the distro package is removed no files with nixbld* uids stay in /nix!
       # Check what 'nix upgrade-nix' does!
 
-      for type in $types; do
-        fpm \
-          --input-type dir \
-          --output-type $type \
-          --name nix \
-          --version 42-FIXME \
-          --maintainer "Eelco Dolstra <eelco.dolstra@logicblox.com>" \
-          --vendor NixOS \
-          --url https://nixos.org/nix/ \
-          --description "$packageDescription" \
-          --license 'LGPLv2+' \
-          --deb-no-default-config-files \
-          --rpm-rpmbuild-define '_build_id_links none' \
-          --after-install ${./after-install-linux.sh} \
-          --before-remove ${./before-remove-linux.sh} \
-          --after-remove ${./after-remove-linux.sh} \
-          $pathsToCopy
+      fpm \
+        --input-type dir \
+        --output-type ${outputFormat} \
+        --name nix \
+        --version 42-FIXME \
+        --maintainer "Eelco Dolstra <eelco.dolstra@logicblox.com>" \
+        --vendor NixOS \
+        --url https://nixos.org/nix/ \
+        --description "$packageDescription" \
+        --license 'LGPLv2+' \
+        --deb-no-default-config-files \
+        --rpm-rpmbuild-define '_build_id_links none' \
+        --after-install ${./after-install-linux.sh} \
+        --before-remove ${./before-remove-linux.sh} \
+        --after-remove ${./after-remove-linux.sh} \
+        $pathsToCopy
 
-        case "$type" in
-          rpm)
-            echo "File list:"
-            rpm -qlp *.rpm
-            echo
-            echo "Package metadata:"
-            rpm -qip *.rpm
-            ;;
-          deb)
-            echo "File list:"
-            dpkg -c *.deb
-            echo
-            echo "Package metadata:"
-            dpkg -I *.deb
-            ;;
-          pacman)
-            # pacman does provide some commands to list metadata, but they don't work without a pacman database set up :(
-            echo "File list:"
-            tar tvf *.pkg.tar.*
-            echo
-            echo "Package metadata:"
-            tar xf *.pkg.tar.* .PKGINFO
-            cat .PKGINFO
-            ;;
-          *)
-            echo "wtf: $type"
-            ;;
-        esac
-      done
+      case "${outputFormat}" in
+        rpm)
+          echo "File list:"
+          rpm -qlp *.rpm
+          echo
+          echo "Package metadata:"
+          rpm -qip *.rpm
+          ;;
+        deb)
+          echo "File list:"
+          dpkg -c *.deb
+          echo
+          echo "Package metadata:"
+          dpkg -I *.deb
+          ;;
+        pacman)
+          # pacman does provide some commands to list metadata, but they don't work without a pacman database set up :(
+          echo "File list:"
+          tar tvf *.pkg.tar.*
+          echo
+          echo "Package metadata:"
+          tar xf *.pkg.tar.* .PKGINFO
+          cat .PKGINFO
+          ;;
+        *)
+          echo "unknown package type: ${outputFormat}"
+          ;;
+      esac
 
       mkdir -p $out
       cp *.deb *.rpm *.pkg.tar.* $out/
@@ -148,9 +149,7 @@ let
   };
 
 in rec {
-  all = buildFor ["deb" "pacman" "rpm"];
-
-  deb = buildFor ["deb"];
-  pacman = buildFor ["pacman"];
-  rpm = buildFor ["rpm"];
+  deb = buildFor "deb";
+  pacman = buildFor "pacman";
+  rpm = buildFor "rpm";
 }

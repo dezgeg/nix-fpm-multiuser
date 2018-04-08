@@ -15,9 +15,6 @@ git submodule update --init
 nix-build -A deb
 nix-build -A pacman
 nix-build -A rpm
-
-# Or build all at once:
-nix-build -A all
 ````
 
 ## To use
