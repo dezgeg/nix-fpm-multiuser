@@ -99,7 +99,6 @@ let
       # --directories /nix - rpm backend doesn't like if the directory doesn't exist
       # Vcs-Browser:, Vcs-Git: and equivalents for RPM
       # Make sure that if the distro package is removed no files with nixbld* uids stay in /nix!
-      # Check what 'nix upgrade-nix' does!
 
       fpm \
         --input-type dir \
