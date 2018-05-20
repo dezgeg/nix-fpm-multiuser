@@ -1,3 +1,4 @@
 [submodule "nix"]
 	path = nix
-	url = https://github.com/NixOS/nix.git
+	url = https://github.com/dezgeg/nix.git
+	branch = for-fpm-multiuser
