@@ -6,13 +6,7 @@ let
 
   # Profile script installed to /etc/profile.d
   profileScript = pkgs.writeText "nix.sh" ''
-    if [ -e $HOME/.nix-profile/etc/profile.d/nix.sh ]; then
-      # XXX: is there actually ever a reason to have this case? is the second case enough?
-      # need to check what NixOS does
-
-      source $HOME/.nix-profile/etc/profile.d/nix.sh
-      export PATH="$PATH:/opt/nix-multiuser/nix/bin"
-    elif [ -e /opt/nix-multiuser/nix/etc/profile.d/nix.sh ]; then
+    if [ -e /opt/nix-multiuser/nix/etc/profile.d/nix.sh ]; then
       source /opt/nix-multiuser/nix/etc/profile.d/nix.sh
       export PATH="$PATH:/opt/nix-multiuser/nix/bin"
     else
