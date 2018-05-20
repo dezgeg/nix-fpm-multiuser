@@ -75,11 +75,7 @@ let
       pathsToCopy+=" nix.sh=/etc/profile.d/nix.sh"
 
       for f in $(cat ${closureInfo}/store-paths); do
-        # XXX: fpm can't recreate a directory hierarchy if the directories lack write permission.
-        # So make a local copy with +w added to directories, include that, and fixup in post-install script.
         cp -r $f .
-        find $(basename $f) -type d -exec chmod +w {} \;
-
         pathsToCopy+=" $(basename $f)=/opt/nix-multiuser/bootstrap-store"
       done
 
@@ -105,11 +101,14 @@ let
         --description "$packageDescription" \
         --license 'LGPLv2+' \
         --deb-no-default-config-files \
+        --directories /opt/nix-multiuser \
         --rpm-rpmbuild-define '_build_id_links none' \
+        --rpm-defattrdir 555 \
         --before-install ${./before-install-linux.sh} \
         --after-install ${./after-install-linux.sh} \
         --before-remove ${./before-remove-linux.sh} \
         --after-remove ${./after-remove-linux.sh} \
+        --debug-workspace \
         $pathsToCopy
 
       case "${outputFormat}" in
