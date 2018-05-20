@@ -113,6 +113,7 @@ let
         --license 'LGPLv2+' \
         --deb-no-default-config-files \
         --rpm-rpmbuild-define '_build_id_links none' \
+        --before-install ${./before-install-linux.sh} \
         --after-install ${./after-install-linux.sh} \
         --before-remove ${./before-remove-linux.sh} \
         --after-remove ${./after-remove-linux.sh} \
