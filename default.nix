@@ -36,6 +36,35 @@ let
     exec ${nix}/bin/nix-daemon --daemon
   '';
 
+  # fish shell support
+  fishConfigDScript = pkgs.writeText "nix.fish" ''
+    eval (sh /opt/nix-multiuser/nix.fish.sh)
+  '';
+
+  fishNixFishSh = pkgs.writeText "nix.fish.sh" ''
+    #!/usr/bin/env bash
+    
+    # Uses `etc/profile.d/nix.sh` to get the environment, then prints it in a
+    # way that fish can eval.
+    
+    initial_PATH="$PATH"
+    
+    source /etc/profile.d/nix.sh
+    
+    for v in NIX_USER_PROFILE_DIR NIX_PATH NIX_SSL_CERT_FILE MANPATH; do
+    	if [ -n "''${!v}" ]; then
+    		echo "set -e $v;"
+    		echo "set -gx $v '${"$"}{!v}';"
+    	fi
+    done
+    
+    # PATH for fish isn't colon-separated.
+    echo "set -e PATH;"
+    # Missing PATH components create a warning.
+    # They should still be added so installing your first thing works.
+    echo "set -gx PATH ''${PATH//:/ } ^/dev/null;"
+  '';
+
   buildFor = outputFormat: pkgs.stdenv.mkDerivation {
     name = "nix-fpm-multiuser";
 
@@ -66,6 +95,8 @@ let
       cp ${closureInfo}/registration reginfo
       cp ${daemonStartupScript} start-daemon.sh
       cp ${profileScript} nix.sh
+      cp ${fishConfigDScript} nix.fish
+      cp ${fishNixFishSh} nix.fish.sh
 
       pathsToCopy+=" nix=/opt/nix-multiuser/nix"
       pathsToCopy+=" nix-daemon.service=$systemdUnitDir/nix-daemon.service"
@@ -73,6 +104,8 @@ let
       pathsToCopy+=" reginfo=/opt/nix-multiuser/reginfo"
       pathsToCopy+=" start-daemon.sh=/opt/nix-multiuser/start-daemon.sh"
       pathsToCopy+=" nix.sh=/etc/profile.d/nix.sh"
+      pathsToCopy+=" nix.fish=/etc/fish/conf.d/nix.fish"
+      pathsToCopy+=" nix.fish.sh=/opt/nix-multiuser/nix.fish.sh"
 
       for f in $(cat ${closureInfo}/store-paths); do
         cp -r $f .
