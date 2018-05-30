@@ -61,17 +61,20 @@ let
 
       # Make local copies here so that they are not owned by root (fpm doesn't like that).
       ln -s ${nix} nix
+      pathsToCopy+=" nix=/opt/nix-multiuser/nix"
+
       cp ${nix}/lib/systemd/system/nix-daemon.* .
       sed -i nix-daemon.service -e 's|ExecStart=.*|ExecStart=/opt/nix-multiuser/start-daemon.sh|'
-      cp ${closureInfo}/registration reginfo
-      cp ${daemonStartupScript} start-daemon.sh
-      cp ${profileScript} nix.sh
-
-      pathsToCopy+=" nix=/opt/nix-multiuser/nix"
       pathsToCopy+=" nix-daemon.service=$systemdUnitDir/nix-daemon.service"
       pathsToCopy+=" nix-daemon.socket=$systemdUnitDir/nix-daemon.socket"
+
+      cp ${closureInfo}/registration reginfo
       pathsToCopy+=" reginfo=/opt/nix-multiuser/reginfo"
+
+      cp ${daemonStartupScript} start-daemon.sh
       pathsToCopy+=" start-daemon.sh=/opt/nix-multiuser/start-daemon.sh"
+
+      cp ${profileScript} nix.sh
       pathsToCopy+=" nix.sh=/etc/profile.d/nix.sh"
 
       for f in $(cat ${closureInfo}/store-paths); do
