@@ -7,7 +7,7 @@ let
   # Profile script installed to /etc/profile.d
   profileScript = pkgs.writeText "nix.sh" ''
     if [ -e /opt/nix-multiuser/nix/etc/profile.d/nix.sh ]; then
-      source /opt/nix-multiuser/nix/etc/profile.d/nix.sh
+      . /opt/nix-multiuser/nix/etc/profile.d/nix.sh
       export PATH="$PATH:/opt/nix-multiuser/nix/bin"
     else
       # Generally, this should never happen, but be defensive just in case we somehow
