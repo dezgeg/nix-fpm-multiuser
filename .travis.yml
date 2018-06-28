@@ -1,0 +1,2 @@
+lanuage: nix
+script: nix-build -A deb -A rpm -A pacman default.nix

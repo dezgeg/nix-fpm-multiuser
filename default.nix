@@ -1,7 +1,14 @@
+{ pkgs ? import <nixpkgs> {} }:
+
 let
-  pkgs = import (builtins.fetchGit { url = https://github.com/dezgeg/nixpkgs.git; ref = "fpm-fixes"; }) { };
-  nix = (import ./nix/release.nix {}).build.x86_64-linux;
-  tarball = (import ./nix/release.nix {}).binaryTarball.x86_64-linux;
+
+  fpm = pkgs.callPackage ./fpm {};
+
+  nixRelease = (import ./nix/release.nix {});
+
+  nix = nixRelease.build.x86_64-linux;
+  tarball = nixRelease.binaryTarball.x86_64-linux;
+
   closureInfo = pkgs.closureInfo { rootPaths = [ nix ]; };
 
   # Profile script installed to /etc/profile.d
