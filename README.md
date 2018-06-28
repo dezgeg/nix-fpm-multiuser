@@ -18,11 +18,25 @@ nix-build -A rpm
 ````
 
 ## To use
-Copy `result/nix_42-FIXME_amd64.deb` to a Debian/Ubuntu box with systemd (I've tested Ubuntu Xenial), then:
-````
-sudo dpkg -i result/nix_42-FIXME_amd64.deb
-````
-and after next login Nix should work for both root and regular users.
+
+Copy `result/nix_42-FIXME_amd64.deb` to a Debian/Ubuntu box with systemd (I've tested Ubuntu Xenial and Debian Stretch), then:
+
+```console
+$ sudo dpkg -i result/nix_42-FIXME_amd64.deb
+```
+
+On rpm-based distributions copy `result/nix-FIXME.x86_64.rpm` over and run (tested with Fedora 27):
+
+```console
+$ rpm -i nix-2.0-1.x86_64.rpm
+```
+
+After next login Nix should work for both root and regular users.
+To use nix, you may want to initialize a channel:
+
+```
+nix-channel --update
+```
 
 ## Rationale & design choices for this particular implementation
 
