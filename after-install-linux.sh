@@ -4,6 +4,7 @@ set -e
 storedir=/nix/store
 localstatedir=/nix/var/nix
 nix=/opt/nix-multiuser/nix
+unset NIX_REMOTE
 
 # Setup build users
 if ! getent group "nixbld" >/dev/null; then
